@@ -22,16 +22,18 @@ func (values Values) Build(builder Builder) {
 		}
 		builder.WriteByte(')')
 
-		builder.WriteString(" VALUES ")
+		if len(values.Values) > 0 {
+			builder.WriteString(" VALUES ")
 
-		for idx, value := range values.Values {
-			if idx > 0 {
-				builder.WriteByte(',')
+			for idx, value := range values.Values {
+				if idx > 0 {
+					builder.WriteByte(',')
+				}
+
+				builder.WriteByte('(')
+				builder.AddVar(builder, value...)
+				builder.WriteByte(')')
 			}
-
-			builder.WriteByte('(')
-			builder.AddVar(builder, value...)
-			builder.WriteByte(')')
 		}
 	} else {
 		builder.WriteString("DEFAULT VALUES")

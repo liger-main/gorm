@@ -5,10 +5,11 @@ import (
 )
 
 var (
-	createClauses = []string{"INSERT", "VALUES", "ON CONFLICT"}
-	queryClauses  = []string{"SELECT", "FROM", "WHERE", "GROUP BY", "ORDER BY", "LIMIT", "FOR"}
-	updateClauses = []string{"UPDATE", "SET", "WHERE"}
-	deleteClauses = []string{"DELETE", "FROM", "WHERE"}
+	createClauses     = []string{"INSERT", "VALUES", "ON CONFLICT"}
+	insertIntoClauses = []string{"INSERT", "VALUES", "SELECT", "FROM", "WHERE", "ON CONFLICT"}
+	queryClauses      = []string{"SELECT", "FROM", "WHERE", "GROUP BY", "ORDER BY", "LIMIT", "FOR"}
+	updateClauses     = []string{"UPDATE", "SET", "WHERE"}
+	deleteClauses     = []string{"DELETE", "FROM", "WHERE"}
 )
 
 type Config struct {
@@ -17,6 +18,7 @@ type Config struct {
 	QueryClauses         []string
 	UpdateClauses        []string
 	DeleteClauses        []string
+	InsertIntoClauses    []string
 }
 
 func RegisterDefaultCallbacks(db *gorm.DB, config *Config) {
@@ -26,6 +28,9 @@ func RegisterDefaultCallbacks(db *gorm.DB, config *Config) {
 
 	if len(config.CreateClauses) == 0 {
 		config.CreateClauses = createClauses
+	}
+	if len(config.InsertIntoClauses) == 0 {
+		config.InsertIntoClauses = insertIntoClauses
 	}
 	if len(config.QueryClauses) == 0 {
 		config.QueryClauses = queryClauses
@@ -72,6 +77,10 @@ func RegisterDefaultCallbacks(db *gorm.DB, config *Config) {
 	updateCallback.Register("gorm:after_update", AfterUpdate)
 	updateCallback.Match(enableTransaction).Register("gorm:commit_or_rollback_transaction", CommitOrRollbackTransaction)
 	updateCallback.Clauses = config.UpdateClauses
+
+	insertIntoCallback := db.Callback().InsertInto()
+	insertIntoCallback.Register("gorm:insert_into", InsertInto(config))
+	insertIntoCallback.Clauses = config.InsertIntoClauses
 
 	rowCallback := db.Callback().Row()
 	rowCallback.Register("gorm:row", RowQuery)

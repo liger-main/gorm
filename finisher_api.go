@@ -24,6 +24,23 @@ func (db *DB) Create(value interface{}) (tx *DB) {
 	return tx.callbacks.Create().Execute(tx)
 }
 
+func (db *DB) InsertInto(table schema.Tabler, columns ...string) (tx *DB) {
+	tx = db.getInstance()
+	tx.Statement.AddClause(clause.Insert{
+		Table: clause.Table{
+			Name: table.TableName(),
+		},
+	})
+	parsedColumns := make([]clause.Column, len(columns))
+	for i, column := range columns {
+		parsedColumns[i] = clause.Column{Name: column}
+	}
+	tx.Statement.AddClause(clause.Values{
+		Columns: parsedColumns,
+	})
+	return tx.callbacks.InsertInto().Execute(tx)
+}
+
 // CreateInBatches inserts value in batches of batchSize
 func (db *DB) CreateInBatches(value interface{}, batchSize int) (tx *DB) {
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))

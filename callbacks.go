@@ -15,12 +15,13 @@ import (
 func initializeCallbacks(db *DB) *callbacks {
 	return &callbacks{
 		processors: map[string]*processor{
-			"create": {db: db},
-			"query":  {db: db},
-			"update": {db: db},
-			"delete": {db: db},
-			"row":    {db: db},
-			"raw":    {db: db},
+			"create":      {db: db},
+			"query":       {db: db},
+			"update":      {db: db},
+			"delete":      {db: db},
+			"insert_into": {db: db},
+			"row":         {db: db},
+			"raw":         {db: db},
 		},
 	}
 }
@@ -62,6 +63,10 @@ func (cs *callbacks) Update() *processor {
 
 func (cs *callbacks) Delete() *processor {
 	return cs.processors["delete"]
+}
+
+func (cs *callbacks) InsertInto() *processor {
+	return cs.processors["insert_into"]
 }
 
 func (cs *callbacks) Row() *processor {
