@@ -504,3 +504,21 @@ func (db *DB) ToSQL(queryFn func(tx *DB) *DB) string {
 
 	return db.Dialector.Explain(stmt.SQL.String(), stmt.Vars...)
 }
+
+func (db *DB) UniqueConstraints(value interface{}) (map[string][]string, error) {
+	sch, err := schema.Parse(value, db.cacheStore, db.NamingStrategy)
+	if err != nil {
+		return nil, err
+	}
+	indexToFields := make(map[string][]string)
+	for name, index := range sch.ParseIndexes() {
+		if index.Class == "UNIQUE" {
+			fieldNames := make([]string, len(index.Fields))
+			for i, field := range index.Fields {
+				fieldNames[i] = field.DBName
+			}
+			indexToFields[name] = fieldNames
+		}
+	}
+	return indexToFields, nil
+}
