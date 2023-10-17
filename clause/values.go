@@ -12,6 +12,11 @@ func (Values) Name() string {
 
 // Build build from clause
 func (values Values) Build(builder Builder) {
+	if len(values.Columns) == 0 && len(values.Values) == 0 {
+		builder.WriteString("DEFAULT VALUES")
+		return
+	}
+	wroteColumns := false
 	if len(values.Columns) > 0 {
 		builder.WriteByte('(')
 		for idx, column := range values.Columns {
@@ -21,22 +26,23 @@ func (values Values) Build(builder Builder) {
 			builder.WriteQuoted(column)
 		}
 		builder.WriteByte(')')
-
-		if len(values.Values) > 0 {
-			builder.WriteString(" VALUES ")
-
-			for idx, value := range values.Values {
-				if idx > 0 {
-					builder.WriteByte(',')
-				}
-
-				builder.WriteByte('(')
-				builder.AddVar(builder, value...)
-				builder.WriteByte(')')
-			}
+		wroteColumns = true
+	}
+	if len(values.Values) > 0 {
+		if wroteColumns {
+			builder.WriteString(" ")
 		}
-	} else {
-		builder.WriteString("DEFAULT VALUES")
+		builder.WriteString("VALUES ")
+
+		for idx, value := range values.Values {
+			if idx > 0 {
+				builder.WriteByte(',')
+			}
+
+			builder.WriteByte('(')
+			builder.AddVar(builder, value...)
+			builder.WriteByte(')')
+		}
 	}
 }
 

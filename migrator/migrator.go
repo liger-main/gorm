@@ -37,6 +37,7 @@ type Config struct {
 	CreateIndexAfterCreateTable bool
 	DB                          *gorm.DB
 	gorm.Dialector
+	CheckFaultyDest bool
 }
 
 type printSQLLogger struct {
@@ -197,7 +198,7 @@ func (m Migrator) AutoMigrate(values ...interface{}) error {
 
 // GetTables returns tables
 func (m Migrator) GetTables() (tableList []string, err error) {
-	err = m.DB.Raw("SELECT TABLE_NAME FROM information_schema.tables where TABLE_SCHEMA=?", m.CurrentDatabase()).
+	err = m.DB.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema=?", m.CurrentDatabase()).
 		Scan(&tableList).Error
 	return
 }
@@ -302,7 +303,7 @@ func (m Migrator) DropTable(values ...interface{}) error {
 	for i := len(values) - 1; i >= 0; i-- {
 		tx := m.DB.Session(&gorm.Session{})
 		if err := m.RunWithValue(values[i], func(stmt *gorm.Statement) error {
-			return tx.Exec("DROP TABLE IF EXISTS ?", m.CurrentTable(stmt)).Error
+			return tx.Exec("DROP TABLE if EXISTS ?", m.CurrentTable(stmt)).Error
 		}); err != nil {
 			return err
 		}
@@ -316,7 +317,7 @@ func (m Migrator) HasTable(value interface{}) bool {
 
 	m.RunWithValue(value, func(stmt *gorm.Statement) error {
 		currentDatabase := m.DB.Migrator().CurrentDatabase()
-		return m.DB.Raw("SELECT count(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ? AND table_type = ?", currentDatabase, stmt.Table, "BASE TABLE").Row().Scan(&count)
+		return m.DB.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = ? AND table_type = ?", currentDatabase, stmt.Table, "BASE TABLE").Row().Scan(&count)
 	})
 
 	return count > 0
@@ -409,7 +410,7 @@ func (m Migrator) HasColumn(value interface{}, field string) bool {
 		}
 
 		return m.DB.Raw(
-			"SELECT count(*) FROM INFORMATION_SCHEMA.columns WHERE table_schema = ? AND table_name = ? AND column_name = ?",
+			"SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = ? AND table_name = ? AND column_name = ?",
 			currentDatabase, stmt.Table, name,
 		).Row().Scan(&count)
 	})
@@ -725,7 +726,7 @@ func (m Migrator) HasConstraint(value interface{}, name string) bool {
 		}
 
 		return m.DB.Raw(
-			"SELECT count(*) FROM INFORMATION_SCHEMA.table_constraints WHERE constraint_schema = ? AND table_name = ? AND constraint_name = ?",
+			"SELECT COUNT(*) FROM information_schema.table_constraints WHERE constraint_schema = ? AND table_name = ? AND constraint_name = ?",
 			currentDatabase, table, name,
 		).Row().Scan(&count)
 	})
@@ -813,7 +814,7 @@ func (m Migrator) HasIndex(value interface{}, name string) bool {
 		}
 
 		return m.DB.Raw(
-			"SELECT count(*) FROM information_schema.statistics WHERE table_schema = ? AND table_name = ? AND index_name = ?",
+			"SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = ? AND table_name = ? AND index_name = ?",
 			currentDatabase, stmt.Table, name,
 		).Row().Scan(&count)
 	})
@@ -936,7 +937,13 @@ func (m Migrator) ReorderModels(values []interface{}, autoAdd bool) (results []i
 	}
 
 	for _, name := range orderedModelNames {
-		results = append(results, valuesMap[name].Statement.Dest)
+		dest := valuesMap[name].Statement.Dest
+		typeName := reflect.Indirect(reflect.ValueOf(dest)).Type().Name()
+		if m.CheckFaultyDest && typeName == "" {
+			results = append(results, valuesMap[name].Statement.Table)
+		} else {
+			results = append(results, valuesMap[name].Statement.Dest)
+		}
 	}
 	return
 }
