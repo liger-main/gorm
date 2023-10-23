@@ -19,7 +19,7 @@ func (DummyDialector) Name() string {
 func (DummyDialector) Initialize(db *gorm.DB) error {
 	callbacks.RegisterDefaultCallbacks(db, &callbacks.Config{
 		CreateClauses:        []string{"INSERT", "VALUES", "ON CONFLICT", "RETURNING"},
-		UpdateClauses:        []string{"UPDATE", "SET", "WHERE", "RETURNING"},
+		UpdateClauses:        []string{"UPDATE", "SET", "FROM", "WHERE", "RETURNING"},
 		DeleteClauses:        []string{"DELETE", "FROM", "WHERE", "RETURNING"},
 		LastInsertIDReversed: true,
 	})

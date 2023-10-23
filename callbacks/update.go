@@ -2,6 +2,7 @@ package callbacks
 
 import (
 	"reflect"
+	"slices"
 	"sort"
 
 	"gorm.io/gorm"
@@ -64,6 +65,15 @@ func Update(config *Config) func(db *gorm.DB) {
 		if db.Statement.Schema != nil {
 			for _, c := range db.Statement.Schema.UpdateClauses {
 				db.Statement.AddClause(c)
+			}
+		}
+
+		if c, ok := db.Statement.Clauses["FROM"]; ok {
+			if _, ok := c.Expression.(clause.From); ok {
+				if !slices.Contains(db.Statement.BuildClauses, "FROM") {
+					setClauseIndex := slices.Index(db.Statement.BuildClauses, "SET")
+					db.Statement.BuildClauses = slices.Insert(db.Statement.BuildClauses, setClauseIndex+1, "FROM")
+				}
 			}
 		}
 

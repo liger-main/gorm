@@ -8,7 +8,7 @@ var (
 	createClauses     = []string{"INSERT", "VALUES", "ON CONFLICT"}
 	insertIntoClauses = []string{"INSERT", "VALUES", "SELECT", "FROM", "WHERE", "ON CONFLICT"}
 	queryClauses      = []string{"SELECT", "FROM", "WHERE", "GROUP BY", "ORDER BY", "LIMIT", "FOR"}
-	updateClauses     = []string{"UPDATE", "SET", "WHERE"}
+	updateClauses     = []string{"UPDATE", "SET", "FROM", "WHERE"}
 	deleteClauses     = []string{"DELETE", "FROM", "WHERE"}
 )
 
