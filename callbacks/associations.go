@@ -437,6 +437,7 @@ func saveAssociations(db *gorm.DB, rel *schema.Relationship, rValues reflect.Val
 var visitMapStoreKey = "gorm:saved_association_map"
 
 func checkAssociationsSaved(db *gorm.DB, values reflect.Value) bool {
+	return true // TODO - liger - can we not completly skip it?
 	if visit, ok := db.Get(visitMapStoreKey); ok {
 		if v, ok := visit.(*visitMap); ok {
 			if loadOrStoreVisitMap(v, values) {
