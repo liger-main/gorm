@@ -7,6 +7,7 @@ const (
 	InnerJoin JoinType = "INNER"
 	LeftJoin  JoinType = "LEFT"
 	RightJoin JoinType = "RIGHT"
+	OuterJoin JoinType = "FULL OUTER"
 )
 
 // Join clause for from
