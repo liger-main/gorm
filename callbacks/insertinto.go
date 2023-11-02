@@ -29,7 +29,8 @@ func InsertInto(config *Config) func(db *gorm.DB) {
 		stmt.AddClauseIfNotExists(clauseSelect)
 
 		stmt.AddClauseIfNotExists(clause.From{
-			Tables: []clause.Table{{Name: stmt.Table}},
+			TableExpr: stmt.TableExpr,
+			Tables:    []clause.Table{{Name: stmt.Table}},
 		})
 
 		stmt.SQL.Grow(100)

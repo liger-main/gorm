@@ -2,8 +2,9 @@ package clause
 
 // From from clause
 type From struct {
-	Tables []Table
-	Joins  []Join
+	Tables    []Table
+	Joins     []Join
+	TableExpr Expression
 }
 
 // Name from clause name
@@ -13,7 +14,9 @@ func (from From) Name() string {
 
 // Build build from clause
 func (from From) Build(builder Builder) {
-	if len(from.Tables) > 0 {
+	if from.TableExpr != nil && from.TableExpr.(*Expr) != nil {
+		from.TableExpr.Build(builder)
+	} else if len(from.Tables) > 0 {
 		for idx, table := range from.Tables {
 			if idx > 0 {
 				builder.WriteByte(',')
