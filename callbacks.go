@@ -131,6 +131,13 @@ func (p *processor) Execute(db *DB) *DB {
 		}
 	}
 
+	// inject active tx if has one set up in context
+	origConnPool := db.Statement.ConnPool
+	if connPool, ok := db.Statement.Context.Value(ActiveTransactionKey).(ConnPool); ok {
+		db.Statement.ConnPool = connPool
+		defer func() { db.Statement.ConnPool = origConnPool }()
+	}
+
 	for _, f := range p.fns {
 		f(db)
 	}

@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -654,7 +655,11 @@ func (db *DB) Transaction(fc func(tx *DB) error, opts ...*sql.TxOptions) (err er
 			return tx.Error
 		}
 
+		origContext := db.Statement.Context
+		db.Statement.Context = ContextWithActiveTransaction(origContext, tx.Statement.ConnPool)
+
 		defer func() {
+			db.Statement.Context = origContext
 			// Make sure to rollback when panic, Block error or Commit error
 			if panicked || err != nil {
 				tx.Rollback()
@@ -669,6 +674,12 @@ func (db *DB) Transaction(fc func(tx *DB) error, opts ...*sql.TxOptions) (err er
 
 	panicked = false
 	return
+}
+
+const ActiveTransactionKey = "active_transaction"
+
+func ContextWithActiveTransaction(ctx context.Context, connPool ConnPool) context.Context {
+	return context.WithValue(ctx, ActiveTransactionKey, connPool)
 }
 
 // Begin begins a transaction with any transaction options opts
