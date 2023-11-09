@@ -655,11 +655,7 @@ func (db *DB) Transaction(fc func(tx *DB) error, opts ...*sql.TxOptions) (err er
 			return tx.Error
 		}
 
-		origContext := db.Statement.Context
-		db.Statement.Context = ContextWithActiveTransaction(origContext, tx.Statement.ConnPool)
-
 		defer func() {
-			db.Statement.Context = origContext
 			// Make sure to rollback when panic, Block error or Commit error
 			if panicked || err != nil {
 				tx.Rollback()
