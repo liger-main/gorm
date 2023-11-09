@@ -112,6 +112,18 @@ type TablerWithNamer interface {
 	TableName(Namer) string
 }
 
+type tabler struct {
+	tableName string
+}
+
+func (t *tabler) TableName() string {
+	return t.tableName
+}
+
+func NewTabler(tableName string) Tabler {
+	return &tabler{tableName}
+}
+
 // Parse get data type from dialector
 func Parse(dest interface{}, cacheStore *sync.Map, namer Namer) (*Schema, error) {
 	return ParseWithSpecialTableName(dest, cacheStore, namer, "")
