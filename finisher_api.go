@@ -29,7 +29,8 @@ func (db *DB) InsertInto(table schema.Tabler, columns ...string) (tx *DB) {
 	tx = db.getInstance()
 	tx.Statement.AddClause(clause.Insert{
 		Table: clause.Table{
-			Name: table.TableName(),
+			Name:  table.TableName(),
+			Alias: table.Alias(),
 		},
 	})
 	parsedColumns := make([]clause.Column, len(columns))

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"sort"
 	"time"
 
@@ -129,6 +130,10 @@ func (p *processor) Execute(db *DB) *DB {
 		if !stmt.ReflectValue.IsValid() {
 			db.AddError(ErrInvalidValue)
 		}
+	}
+
+	if !slices.Contains(stmt.BuildClauses, "WITH") {
+		stmt.BuildClauses = append([]string{"WITH"}, stmt.BuildClauses...)
 	}
 
 	// inject active tx if has one set up in context

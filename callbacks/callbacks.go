@@ -5,11 +5,11 @@ import (
 )
 
 var (
-	createClauses     = []string{"INSERT", "VALUES", "ON CONFLICT"}
-	insertIntoClauses = []string{"INSERT", "VALUES", "SELECT", "FROM", "WHERE", "ON CONFLICT"}
-	queryClauses      = []string{"SELECT", "FROM", "WHERE", "GROUP BY", "ORDER BY", "LIMIT", "FOR"}
-	updateClauses     = []string{"UPDATE", "SET", "FROM", "WHERE"}
-	deleteClauses     = []string{"DELETE", "FROM", "WHERE"}
+	createClauses     = []string{"WITH", "INSERT", "VALUES", "ON CONFLICT"}
+	insertIntoClauses = []string{"WITH", "INSERT", "VALUES", "SELECT", "FROM", "WHERE", "ON CONFLICT"}
+	queryClauses      = []string{"WITH", "SELECT", "FROM", "WHERE", "GROUP BY", "ORDER BY", "LIMIT", "FOR"}
+	updateClauses     = []string{"WITH", "UPDATE", "SET", "FROM", "WHERE"}
+	deleteClauses     = []string{"WITH", "DELETE", "FROM", "WHERE"}
 )
 
 type Config struct {

@@ -106,6 +106,7 @@ func (schema Schema) LookUpFieldByBindName(bindNames []string, name string) *Fie
 
 type Tabler interface {
 	TableName() string
+	Alias() string
 }
 
 type TablerWithNamer interface {
@@ -114,14 +115,23 @@ type TablerWithNamer interface {
 
 type tabler struct {
 	tableName string
+	alias     string
 }
 
 func (t *tabler) TableName() string {
 	return t.tableName
 }
 
+func (t *tabler) Alias() string {
+	return t.alias
+}
+
 func NewTabler(tableName string) Tabler {
-	return &tabler{tableName}
+	return &tabler{tableName, ""}
+}
+
+func NewTablerWithAlias(tableName string, alias string) Tabler {
+	return &tabler{tableName, alias}
 }
 
 // Parse get data type from dialector
