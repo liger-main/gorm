@@ -193,6 +193,11 @@ func (stmt *Statement) AddVar(writer clause.Writer, vars ...interface{}) {
 		case driver.Valuer:
 			stmt.Vars = append(stmt.Vars, v)
 			stmt.DB.Dialector.BindVarTo(writer, stmt, v)
+			if err, val := v.Value(); err == nil && val == nil {
+				if reflect.TypeOf(v).String() == "sql.NullBool" {
+					writer.WriteString("::boolean")
+				}
+			}
 		case []byte:
 			stmt.Vars = append(stmt.Vars, v)
 			stmt.DB.Dialector.BindVarTo(writer, stmt, v)

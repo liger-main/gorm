@@ -194,7 +194,9 @@ func ConvertToCreateValues(stmt *gorm.Statement) (values clause.Values) {
 		)
 		stmt.Settings.Delete("gorm:update_track_time")
 
-		values = clause.Values{Columns: make([]clause.Column, 0, len(stmt.Schema.DBNames))}
+		values = clause.Values{
+			Columns: make([]clause.Column, 0, len(stmt.Schema.DBNames)),
+		}
 
 		for _, db := range stmt.Schema.DBNames {
 			if field := stmt.Schema.FieldsByDBName[db]; !field.HasDefaultValue || field.DefaultValueInterface != nil {
@@ -234,6 +236,8 @@ func ConvertToCreateValues(stmt *gorm.Statement) (values clause.Values) {
 						} else if field.AutoCreateTime > 0 || field.AutoUpdateTime > 0 {
 							stmt.AddError(field.Set(stmt.Context, rv, curTime))
 							values.Values[i][idx], _ = field.ValueOf(stmt.Context, rv)
+						} else if field.FieldType.String() == "sql.NullBool" {
+							values.Values[i][idx] = reflect.Zero(field.FieldType).Interface()
 						}
 					} else if field.AutoUpdateTime > 0 && updateTrackTime {
 						stmt.AddError(field.Set(stmt.Context, rv, curTime))

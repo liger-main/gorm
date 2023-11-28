@@ -1,8 +1,9 @@
 package clause
 
 type Values struct {
-	Columns []Column
-	Values  [][]interface{}
+	Columns              []Column
+	Values               [][]interface{}
+	DisableDefaultValues bool
 }
 
 // Name from clause name
@@ -12,7 +13,7 @@ func (Values) Name() string {
 
 // Build build from clause
 func (values Values) Build(builder Builder) {
-	if len(values.Columns) == 0 && len(values.Values) == 0 {
+	if !values.DisableDefaultValues && len(values.Columns) == 0 && len(values.Values) == 0 {
 		builder.WriteString("DEFAULT VALUES")
 		return
 	}
