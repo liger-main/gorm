@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 	"reflect"
 	"sort"
 	"sync"
@@ -98,6 +99,8 @@ type DB struct {
 	Statement    *Statement
 	clone        int
 }
+
+var _ io.Closer = &DB{}
 
 // Session session config when create session with Session() method
 type Session struct {
@@ -212,6 +215,14 @@ func Open(dialector Dialector, opts ...Option) (db *DB, err error) {
 	}
 
 	return
+}
+
+func (db *DB) Close() error {
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying db: %v", err)
+	}
+	return sqlDB.Close()
 }
 
 // Session create new db session
