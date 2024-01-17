@@ -197,6 +197,9 @@ func (stmt *Statement) AddVar(writer clause.Writer, vars ...interface{}) {
 				if reflect.TypeOf(v).String() == "sql.NullBool" {
 					writer.WriteString("::boolean")
 				}
+				if reflect.TypeOf(v).String() == "sql.NullInt64" {
+					writer.WriteString("::bigint")
+				}
 			}
 		case []byte:
 			stmt.Vars = append(stmt.Vars, v)

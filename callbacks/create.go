@@ -236,7 +236,7 @@ func ConvertToCreateValues(stmt *gorm.Statement) (values clause.Values) {
 						} else if field.AutoCreateTime > 0 || field.AutoUpdateTime > 0 {
 							stmt.AddError(field.Set(stmt.Context, rv, curTime))
 							values.Values[i][idx], _ = field.ValueOf(stmt.Context, rv)
-						} else if field.FieldType.String() == "sql.NullBool" {
+						} else if strings.HasPrefix(field.FieldType.String(), "sql.Null") {
 							values.Values[i][idx] = reflect.Zero(field.FieldType).Interface()
 						}
 					} else if field.AutoUpdateTime > 0 && updateTrackTime {
