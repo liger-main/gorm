@@ -8,6 +8,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	. "gorm.io/gorm/utils/tests"
@@ -307,6 +309,71 @@ func TestNestedPreloadWithUnscoped(t *testing.T) {
 	CheckUserUnscoped(t, *user6, user)
 }
 
+func TestNestedPreloadWithNestedJoin(t *testing.T) {
+	type (
+		Preload struct {
+			ID       uint
+			Value    string
+			NestedID uint
+		}
+		Join struct {
+			ID       uint
+			Value    string
+			NestedID uint
+		}
+		Nested struct {
+			ID       uint
+			Preloads []*Preload
+			Join     Join
+			ValueID  uint
+		}
+		Value struct {
+			ID     uint
+			Name   string
+			Nested Nested
+		}
+	)
+
+	DB.Migrator().DropTable(&Preload{}, &Join{}, &Nested{}, &Value{})
+	DB.Migrator().AutoMigrate(&Preload{}, &Join{}, &Nested{}, &Value{})
+
+	value := Value{
+		Name: "value",
+		Nested: Nested{
+			Preloads: []*Preload{
+				{Value: "p1"}, {Value: "p2"},
+			},
+			Join: Join{Value: "j1"},
+		},
+	}
+	if err := DB.Create(&value).Error; err != nil {
+		t.Errorf("failed to create value, got err: %v", err)
+	}
+
+	var find1 Value
+	err := DB.Joins("Nested").Joins("Nested.Join").Preload("Nested.Preloads").First(&find1).Error
+	if err != nil {
+		t.Errorf("failed to find value, got err: %v", err)
+	}
+	AssertEqual(t, find1, value)
+
+	var find2 Value
+	// Joins will automatically add Nested queries.
+	err = DB.Joins("Nested.Join").Preload("Nested.Preloads").First(&find2).Error
+	if err != nil {
+		t.Errorf("failed to find value, got err: %v", err)
+	}
+	AssertEqual(t, find2, value)
+
+	var finds []Value
+	err = DB.Joins("Nested.Join").Joins("Nested").Preload("Nested.Preloads").Find(&finds).Error
+	if err != nil {
+		t.Errorf("failed to find value, got err: %v", err)
+	}
+	require.Len(t, finds, 1)
+	AssertEqual(t, finds[0], value)
+}
+
 func TestEmbedPreload(t *testing.T) {
 	type Country struct {
 		ID   int `gorm:"primaryKey"`
@@ -429,7 +496,6 @@ func TestEmbedPreload(t *testing.T) {
 		},
 	}
 
-	DB = DB.Debug()
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			actual := Org{}

@@ -43,9 +43,6 @@ func init() {
 		}
 
 		RunMigrations()
-		if DB.Dialector.Name() == "sqlite" {
-			DB.Exec("PRAGMA foreign_keys = ON")
-		}
 	}
 }
 
@@ -89,7 +86,10 @@ func OpenTestConnection(cfg *gorm.Config) (db *gorm.DB, err error) {
 		db, err = gorm.Open(mysql.Open(dbDSN), cfg)
 	default:
 		log.Println("testing sqlite3...")
-		db, err = gorm.Open(sqlite.Open(filepath.Join(os.TempDir(), "gorm.db?_foreign_keys=on")), cfg)
+		db, err = gorm.Open(sqlite.Open(filepath.Join(os.TempDir(), "gorm.db")), cfg)
+		if err == nil {
+			db.Exec("PRAGMA foreign_keys = ON")
+		}
 	}
 
 	if err != nil {
@@ -107,7 +107,7 @@ func OpenTestConnection(cfg *gorm.Config) (db *gorm.DB, err error) {
 
 func RunMigrations() {
 	var err error
-	allModels := []interface{}{&User{}, &Account{}, &Pet{}, &Company{}, &Toy{}, &Language{}, &Coupon{}, &CouponProduct{}, &Order{}, &Parent{}, &Child{}}
+	allModels := []interface{}{&User{}, &Account{}, &Pet{}, &Company{}, &Toy{}, &Language{}, &Coupon{}, &CouponProduct{}, &Order{}, &Parent{}, &Child{}, &Tools{}}
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(allModels), func(i, j int) { allModels[i], allModels[j] = allModels[j], allModels[i] })
 
